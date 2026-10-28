@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MotoCare AI — Predictive Maintenance Engine Diagnostic Interface</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Chart.js for data visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Top Navigation Bar -->
+        <header class="navbar">
+            <div class="brand">
+                <div class="brand-icon">
+                    <i class="fa-solid fa-motorcycle"></i>
+                </div>
+                <div class="brand-text">
+                    <h1>MotoCare <span>AI</span></h1>
+                    <p>Predictive Engine Telemetry & Maintenance Diagnostics</p>
+                </div>
+            </div>
+            
+            <div class="nav-status">
+                <div class="status-chip live">
+                    <span class="pulse-dot"></span>
+                    <span>Pipeline Active</span>
+                </div>
+                <div class="status-chip model-chip">
+                    <i class="fa-solid fa-brain"></i>
+                    <span>Logistic Regression (1.6.1)</span>
+                </div>
+                <div class="status-chip dataset-chip">
+                    <i class="fa-solid fa-database"></i>
+                    <span>19,535 Records</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Tab Navigation -->
+        <nav class="tab-nav">
+            <button class="tab-btn active" data-tab="tab-predict">
+                <i class="fa-solid fa-gauge-high"></i> Telemetry & Prediction
+            </button>
+            <button class="tab-btn" data-tab="tab-batch">
+                <i class="fa-solid fa-file-csv"></i> Batch CSV Diagnostics
+            </button>
+            <button class="tab-btn" data-tab="tab-model">
+                <i class="fa-solid fa-chart-pie"></i> Model & Dataset Stats
+            </button>
+            <button class="tab-btn" data-tab="tab-api">
+                <i class="fa-solid fa-code"></i> API Integration
+            </button>
+        </nav>
+
+        <!-- Tab 1: Single Prediction & Telemetry -->
+        <main class="tab-content active" id="tab-predict">
+            <!-- Quick Preset Scenarios -->
+            <section class="section preset-section">
+                <div class="section-header">
+                    <h2><i class="fa-solid fa-bolt"></i> Quick Telemetry Scenarios</h2>
+                    <span class="subtext">Select a pre-configured engine condition scenario to quickly populate inputs</span>
+                </div>
+                <div class="preset-cards" id="presetContainer">
+                    <!-- Populated dynamically via JS -->
+                </div>
+            </section>
+
+            <div class="dashboard-grid">
+                <!-- Left Column: Controls & Sensor Inputs -->
+                <div class="control-panel card">
+                    <div class="panel-header">
+                        <div class="title-wrap">
+                            <i class="fa-solid fa-sliders"></i>
+                            <h3>Sensor Telemetry Inputs</h3>
+                        </div>
+                        <button id="resetBtn" class="btn-secondary btn-sm" title="Reset all to dataset medians">
+                            <i class="fa-solid fa-rotate-left"></i> Reset
+                        </button>
+                    </div>
+
+                    <!-- Bike Metadata (Optional) -->
+                    <div class="bike-meta-row">
+                        <div class="input-group">
+                            <label for="bikeModel"><i class="fa-solid fa-tag"></i> Motorcycle Model</label>
+                            <input type="text" id="bikeModel" placeholder="e.g. Yamaha R15 V4, KTM Duke 390" value="Yamaha MT-15 V2">
+                        </div>
+                        <div class="input-group">
+                            <label for="bikeYear"><i class="fa-solid fa-calendar"></i> Model Year</label>
+                            <input type="number" id="bikeYear" min="1970" max="2030" value="2023">
+                        </div>
+                    </div>
+
+                    <div class="divider"></div>
+
+                    <!-- 6 Sensor Input Sliders -->
+                    <div class="sensor-inputs">
+                        <!-- Sensor 1: Engine RPM -->
+                        <div class="sensor-control" data-sensor="Engine rpm">
+                            <div class="sensor-info">
+                                <span class="sensor-title"><i class="fa-solid fa-tachometer-alt"></i> Engine Speed (RPM)</span>
+                                <div class="val-badge"><span id="val_rpm">746</span> <small>rpm</small></div>
+                            </div>
+                            <input type="range" class="slider" id="slider_rpm" min="60" max="2300" step="1" value="746">
+                            <div class="sensor-meta">
+                                <span>Min: 61</span>
+                                <span class="median-tag">Median: 746</span>
+                                <span>Max: 2,239</span>
+                            </div>
+                        </div>
+
+                        <!-- Sensor 2: Lub Oil Pressure -->
+                        <div class="sensor-control" data-sensor="Lub oil pressure">
+                            <div class="sensor-info">
+                                <span class="sensor-title"><i class="fa-solid fa-oil-can"></i> Lub Oil Pressure</span>
+                                <div class="val-badge"><span id="val_oil_press">3.16</span> <small>bar</small></div>
+                            </div>
+                            <input type="range" class="slider" id="slider_oil_press" min="0.0" max="7.5" step="0.01" value="3.16">
+                            <div class="sensor-meta">
+                                <span>Min: 0.00</span>
+                                <span class="median-tag">Median: 3.16</span>
+                                <span>Max: 7.27</span>
+                            </div>
+                        </div>
+
+                        <!-- Sensor 3: Fuel Pressure -->
+                        <div class="sensor-control" data-sensor="Fuel pressure">
+                            <div class="sensor-info">
+                                <span class="sensor-title"><i class="fa-solid fa-gas-pump"></i> Fuel Delivery Pressure</span>
+                                <div class="val-badge"><span id="val_fuel_press">6.20</span> <small>bar</small></div>
+                            </div>
+                            <input type="range" class="slider" id="slider_fuel_press" min="0.0" max="21.5" step="0.05" value="6.20">
+                            <div class="sensor-meta">
+                                <span>Min: 0.00</span>
+                                <span class="median-tag">Median: 6.20</span>
+                                <span>Max: 21.14</span>
+                            </div>
+                        </div>
+
+                        <!-- Sensor 4: Coolant Pressure -->
+                        <div class="sensor-control" data-sensor="Coolant pressure">
+                            <div class="sensor-info">
+                                <span class="sensor-title"><i class="fa-solid fa-compress"></i> Coolant Pressure</span>
+                                <div class="val-badge"><span id="val_coolant_press">2.17</span> <small>bar</small></div>
+                            </div>
+                            <input type="range" class="slider" id="slider_coolant_press" min="0.0" max="7.5" step="0.01" value="2.17">
+                            <div class="sensor-meta">
+                                <span>Min: 0.00</span>
+                                <span class="median-tag">Median: 2.17</span>
+                                <span>Max: 7.48</span>
+                            </div>
+                        </div>
+
+                        <!-- Sensor 5: Lub Oil Temperature -->
+                        <div class="sensor-control" data-sensor="lub oil temp">
+                            <div class="sensor-info">
+                                <span class="sensor-title"><i class="fa-solid fa-temperature-arrow-up"></i> Lub Oil Temperature</span>
+                                <div class="val-badge"><span id="val_oil_temp">76.8</span> <small>°C</small></div>
+                            </div>
+                            <input type="range" class="slider" id="slider_oil_temp" min="70.0" max="92.0" step="0.1" value="76.8">
+                            <div class="sensor-meta">
+                                <span>Min: 71.3</span>
+                                <span class="median-tag">Median: 76.8</span>
+                                <span>Max: 89.6</span>
+                            </div>
+                        </div>
+
+                        <!-- Sensor 6: Coolant Temperature -->
+                        <div class="sensor-control" data-sensor="Coolant temp">
+                            <div class="sensor-info">
+                                <span class="sensor-title"><i class="fa-solid fa-temperature-full"></i> Coolant Temperature</span>
+                                <div class="val-badge"><span id="val_coolant_temp">78.3</span> <small>°C</small></div>
+                            </div>
+                            <input type="range" class="slider" id="slider_coolant_temp" min="60.0" max="130.0" step="0.1" value="78.3">
+                            <div class="sensor-meta">
+                                <span>Min: 61.7</span>
+                                <span class="median-tag">Median: 78.3</span>
+                                <span>Max: 195.5</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="action-wrap">
+                        <button id="analyzeBtn" class="btn-primary btn-block">
+                            <i class="fa-solid fa-magnifying-glass-chart"></i> Run Diagnostic Assessment
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Right Column: Results & Telemetry Cockpit -->
+                <div class="results-panel card">
+                    <div class="panel-header">
+                        <div class="title-wrap">
+                            <i class="fa-solid fa-microchip"></i>
+                            <h3>Diagnostic Assessment Result</h3>
+                        </div>
+                        <span id="timestampBadge" class="timestamp-tag"><i class="fa-regular fa-clock"></i> Ready</span>
+                    </div>
+
+                    <!-- Hero Prediction Card -->
+                    <div id="heroResult" class="hero-result status-normal">
+                        <div class="hero-icon-ring" id="heroIcon">
+                            <i class="fa-solid fa-shield-halved"></i>
+                        </div>
+                        <div class="hero-text">
+                            <span class="badge" id="conditionBadge">HEALTHY</span>
+                            <h2 id="predictionTitle">Engine Condition: Normal (0)</h2>
+                            <p id="predictionSummary">All sensor parameters are within nominal thresholds. Engine operates stably.</p>
+                        </div>
+                        <div class="health-gauge-box">
+                            <div class="health-number" id="healthScore">94.2%</div>
+                            <div class="health-caption">Health Index</div>
+                        </div>
+                    </div>
+
+                    <!-- Metrics Grid -->
+                    <div class="metrics-grid">
+                        <div class="metric-card">
+                            <span class="metric-label">Probability (Normal)</span>
+                            <span class="metric-val text-success" id="probNormal">88.0%</span>
+                            <div class="mini-bar-bg"><div class="mini-bar-fill bar-success" id="barNormal" style="width: 88%"></div></div>
+                        </div>
+                        <div class="metric-card">
+                            <span class="metric-label">Probability (Fault)</span>
+                            <span class="metric-val text-danger" id="probFault">12.0%</span>
+                            <div class="mini-bar-bg"><div class="mini-bar-fill bar-danger" id="barFault" style="width: 12%"></div></div>
+                        </div>
+                        <div class="metric-card">
+                            <span class="metric-label">Risk Severity</span>
+                            <span class="metric-val" id="riskLevel"><span class="risk-pill pill-low">LOW</span></span>
+                            <span class="metric-sub" id="riskSub">No urgent action</span>
+                        </div>
+                        <div class="metric-card">
+                            <span class="metric-label">Engine Speed (RPM)</span>
+                            <span class="metric-val text-cyan" id="metricRPM">746 rpm</span>
+                            <span class="metric-sub">Crusing / Nominal</span>
+                        </div>
+                    </div>
+
+                    <!-- Chart & Telemetry Radar/Bars -->
+                    <div class="chart-section">
+                        <div class="chart-box">
+                            <h4><i class="fa-solid fa-chart-column"></i> Probability Distribution</h4>
+                            <div class="chart-canvas-wrap">
+                                <canvas id="probChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="chart-box">
+                            <h4><i class="fa-solid fa-chart-radar"></i> Sensor Load Radar</h4>
+                            <div class="chart-canvas-wrap">
+                                <canvas id="radarChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Per-Sensor Diagnostics Table -->
+                    <div class="sensor-table-wrap">
+                        <h4><i class="fa-solid fa-list-check"></i> Subsystem Sensor Telemetry Breakdown</h4>
+                        <table class="telemetry-table" id="sensorTable">
+                            <thead>
+                                <tr>
+                                    <th>Sensor</th>
+                                    <th>Measured Value</th>
+                                    <th>Baseline Median</th>
+                                    <th>Status</th>
+                                    <th>Advisory</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Mechanical Recommendations Checklist -->
+                    <div class="recommendations-box">
+                        <h4><i class="fa-solid fa-wrench"></i> Diagnostic Action Items</h4>
+                        <ul id="recommendationList" class="rec-list">
+                            <li><i class="fa-solid fa-circle-check text-success"></i> Verify regular oil and filter schedule.</li>
+                            <li><i class="fa-solid fa-circle-check text-success"></i> No critical faults detected across engine sensors.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Tab 2: Batch CSV Diagnostics -->
+        <section class="tab-content" id="tab-batch">
+            <div class="card batch-card">
+                <div class="panel-header">
+                    <div class="title-wrap">
+                        <i class="fa-solid fa-file-csv"></i>
+                        <h3>Batch Engine Telemetry Assessment</h3>
+                    </div>
+                    <a href="/api/download-sample-csv" class="btn-secondary btn-sm">
+                        <i class="fa-solid fa-download"></i> Download Sample CSV
+                    </a>
+                </div>
+                <p class="section-desc">
+                    Upload an engine sensor telemetry log in CSV format. The model pipeline will evaluate all rows, calculate probabilities, and identify imminent mechanical faults across your fleet or long-run sensor data.
+                </p>
+
+                <!-- Drag & Drop Zone -->
+                <div class="drop-zone" id="dropZone">
+                    <i class="fa-solid fa-cloud-arrow-up drop-icon"></i>
+                    <h3>Drag & Drop CSV File Here</h3>
+                    <p>or click to browse from computer</p>
+                    <input type="file" id="batchFileInput" accept=".csv" style="display:none;">
+                    <div class="drop-footer">
+                        <span>Expected columns: Engine rpm, Lub oil pressure, Fuel pressure, Coolant pressure, lub oil temp, Coolant temp</span>
+                    </div>
+                </div>
+
+                <div id="batchProgress" class="progress-wrap" style="display:none;">
+                    <div class="spinner"></div>
+                    <span>Processing CSV records through scikit-learn pipeline...</span>
+                </div>
+
+                <!-- Batch Summary Cards -->
+                <div id="batchSummarySection" class="batch-summary" style="display:none;">
+                    <div class="summary-cards">
+                        <div class="metric-card">
+                            <span class="metric-label">Total Records Evaluated</span>
+                            <span class="metric-val text-cyan" id="bTotal">0</span>
+                        </div>
+                        <div class="metric-card">
+                            <span class="metric-label">Normal / Healthy</span>
+                            <span class="metric-val text-success" id="bNormal">0</span>
+                        </div>
+                        <div class="metric-card">
+                            <span class="metric-label">Faults Detected</span>
+                            <span class="metric-val text-danger" id="bFault">0</span>
+                        </div>
+                        <div class="metric-card">
+                            <span class="metric-label">Fleet Fault Rate</span>
+                            <span class="metric-val text-warning" id="bRate">0%</span>
+                        </div>
+                    </div>
+
+                    <div class="batch-table-header">
+                        <h4><i class="fa-solid fa-table"></i> Diagnostic Results Preview</h4>
+                        <button id="downloadResultsBtn" class="btn-secondary btn-sm">
+                            <i class="fa-solid fa-file-export"></i> Export Results Table to CSV
+                        </button>
+                    </div>
+
+                    <div class="table-container">
+                        <table class="batch-table" id="batchResultTable">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>RPM</th>
+                                    <th>Oil Press (bar)</th>
+                                    <th>Fuel Press (bar)</th>
+                                    <th>Coolant Press (bar)</th>
+                                    <th>Oil Temp (°C)</th>
+                                    <th>Coolant Temp (°C)</th>
+                                    <th>Status</th>
+                                    <th>Fault Probability</th>
+                                    <th>Health Score</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tab 3: Model & Dataset Statistics -->
+        <section class="tab-content" id="tab-model">
+            <div class="model-stats-grid">
+                <div class="card">
+                    <div class="panel-header">
+                        <div class="title-wrap">
+                            <i class="fa-solid fa-brain"></i>
+                            <h3>Trained Machine Learning Model Architecture</h3>
+                        </div>
+                    </div>
+                    <div class="info-table-wrap">
+                        <table class="info-table">
+                            <tr>
+                                <td><strong>Model Class</strong></td>
+                                <td>LogisticRegression(class_weight='balanced', max_iter=2000)</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Pre-processing Pipeline</strong></td>
+                                <td>ColumnTransformer: SimpleImputer(median) + StandardScaler()</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Scikit-Learn Version</strong></td>
+                                <td>1.6.1</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Validation Strategy</strong></td>
+                                <td>Stratified 5-Fold Cross Validation</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Test Accuracy</strong></td>
+                                <td>~64.2% (Balanced across fault & normal distributions)</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Macro F1 Score</strong></td>
+                                <td>0.628</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Target Variable</strong></td>
+                                <td>Engine Condition (0: Normal / Healthy, 1: Fault / Maintenance Needed)</td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <div class="formula-box">
+                        <h4><i class="fa-solid fa-calculator"></i> Pipeline Feature Weights (Coefficients)</h4>
+                        <div class="weights-list">
+                            <div class="weight-item">
+                                <span>Engine rpm:</span> <strong class="text-success">-0.6048</strong>
+                                <small>(Higher RPM decreases fault odds in cruising regimes)</small>
+                            </div>
+                            <div class="weight-item">
+                                <span>Fuel pressure:</span> <strong class="text-danger">+0.2697</strong>
+                                <small>(Higher fuel pressure increases fault odds)</small>
+                            </div>
+                            <div class="weight-item">
+                                <span>lub oil temp:</span> <strong class="text-success">-0.1662</strong>
+                                <small>(Operating warm reduces cold-sludge flags)</small>
+                            </div>
+                            <div class="weight-item">
+                                <span>Lub oil pressure:</span> <strong class="text-danger">+0.1293</strong>
+                                <small>(Over-pressure warnings)</small>
+                            </div>
+                            <div class="weight-item">
+                                <span>Coolant pressure:</span> <strong>-0.0629</strong>
+                            </div>
+                            <div class="weight-item">
+                                <span>Coolant temp:</span> <strong>-0.0583</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="panel-header">
+                        <div class="title-wrap">
+                            <i class="fa-solid fa-database"></i>
+                            <h3>Dataset Baseline Distributions (19,535 Engine Cycles)</h3>
+                        </div>
+                    </div>
+                    <div class="table-container">
+                        <table class="stats-table" id="datasetStatsTable">
+                            <thead>
+                                <tr>
+                                    <th>Feature</th>
+                                    <th>Min</th>
+                                    <th>25%</th>
+                                    <th>Median</th>
+                                    <th>Mean</th>
+                                    <th>75%</th>
+                                    <th>Max</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Populated dynamically from /api/stats -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="note-box">
+                        <i class="fa-solid fa-circle-info"></i>
+                        <div>
+                            <strong>Dataset Origin:</strong>
+                            Predictive Maintenance Engine Dataset (HuggingFace mukherjee78). Cleaned, preprocessed, with identifiers removed to prevent data leakage.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tab 4: API Integration -->
+        <section class="tab-content" id="tab-api">
+            <div class="card api-card">
+                <div class="panel-header">
+                    <div class="title-wrap">
+                        <i class="fa-solid fa-terminal"></i>
+                        <h3>Developer API Documentation</h3>
+                    </div>
+                    <span class="badge badge-api">REST v1</span>
+                </div>
+
+                <p class="section-desc">
+                    Integrate motorcycle engine diagnostics directly into onboard IoT telematics units, mobile apps, or workshop scanners using the JSON REST API.
+                </p>
+
+                <div class="endpoint-box">
+                    <div class="endpoint-header">
+                        <span class="method post">POST</span>
+                        <code class="endpoint-url">/api/predict</code>
+                    </div>
+                    <p>Submits 6 engine measurements and returns model classification, probabilities, risk severity, and sensor diagnostics.</p>
+
+                    <h4>Example Request Body (JSON)</h4>
+                    <pre><code class="code-block">{
+  "bike_model": "Yamaha R15 V4",
+  "bike_year": 2023,
+  "engine_rpm": 700.0,
+  "lub_oil_pressure": 2.493,
+  "fuel_pressure": 11.790,
+  "coolant_pressure": 3.178,
+  "lub_oil_temp": 84.144,
+  "coolant_temp": 81.632
+}</code></pre>
+
+                    <h4>Example Response (JSON)</h4>
+                    <pre><code class="code-block">{
+  "prediction": 1,
+  "prediction_title": "Engine Condition: Fault Detected",
+  "prediction_badge": "FAULT DETECTED",
+  "health_score": 44.3,
+  "probabilities": {
+    "normal_pct": 44.3,
+    "fault_pct": 55.7
+  },
+  "risk": {
+    "level": "MODERATE",
+    "label": "Watchlist",
+    "color": "#f59e0b"
+  },
+  "recommendations": [
+    "Immediate inspection required for lub oil temp: Oil overheating!",
+    "Monitor Fuel pressure: Fuel pressure is elevated."
+  ]
+}</code></pre>
+
+                    <h4>cURL Command</h4>
+                    <pre><code class="code-block">curl -X POST http://127.0.0.1:5000/api/predict \
+  -H "Content-Type: application/json" \
+  -d '{"engine_rpm": 700, "lub_oil_pressure": 2.49, "fuel_pressure": 11.79, "coolant_pressure": 3.17, "lub_oil_temp": 84.14, "coolant_temp": 81.63}'</code></pre>
+
+                    <h4>Python Code Snippet</h4>
+                    <pre><code class="code-block">import requests
+
+payload = {
+    "engine_rpm": 1200,
+    "lub_oil_pressure": 3.5,
+    "fuel_pressure": 6.2,
+    "coolant_pressure": 2.3,
+    "lub_oil_temp": 77.0,
+    "coolant_temp": 78.5
+}
+
+response = requests.post("http://127.0.0.1:5000/api/predict", json=payload)
+data = response.json()
+print("Prediction:", data["prediction_title"])
+print("Health Score:", data["health_score"])</code></pre>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="footer-left">
+                <strong>MotoCare AI Telemetry System</strong> &bull; Machine Learning Engine Predictive Maintenance
+            </div>
+            <div class="footer-right">
+                <span>scikit-learn 1.6.1 &bull; Flask &bull; Chart.js</span>
+            </div>
+        </footer>
+    </div>
+
+    <script src="/static/js/main.js"></script>
+</body>
+</html>
